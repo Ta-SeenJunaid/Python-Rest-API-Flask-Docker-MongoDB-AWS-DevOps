@@ -22,7 +22,8 @@ class Register(Resource):
         users.insert({
             "Username": username,
             "Password": hashed_pw,
-            "Sentence": ""
+            "Sentence": "",
+            "Token": 10
         })
 
         retJson = {
@@ -32,7 +33,52 @@ class Register(Resource):
 
         return jsonify(retJson)
 
+class Store(Resource):
+    def post(self):
+
+        postedData = request.get_json()
+
+        username = postedData["username"]
+        password = postedData["password"]
+        sentence = postedData["sentence"]
+
+        correct_pw = verifyPw(username, password)
+
+        if not correct_pw:
+            retJson = {
+                "status":302,
+                "msg": "Wrong Username or Password"
+            }
+
+            return jsonify(retJson)
+
+        num_tokens = countTokens(username)
+        if num_tokens <=0:
+            retJson = {
+                "status": 301,
+                "msg": "Out of token"
+            }
+
+            return jsonify(retJson)
+
+        users.update({
+            "Username":username
+        }, {
+            "$set":{
+                "Sentence":sentence,
+                "Tokens":num_tokens-1
+            }
+        })
+
+        retJson = {
+            "status":200,
+            "msg": "Sentence saved successfully"
+        }
+        return jsonify(retJson)
+
+
 api.add_resource(Register, '/register')
+api.add_resource(Store, '/store')
 
 if __name__=="__main__":
     app.run(host='0.0.0.0')
