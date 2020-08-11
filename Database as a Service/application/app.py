@@ -10,6 +10,22 @@ client = MongoClient("mongodb://db:27017")
 db = client.SentencesDatabase
 users = db["Users"]
 
+def verifyPw(username, password):
+    hashed_pw = users.find({
+        "Username": username
+    })[0]["Password"]
+
+    if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
+        return True
+    else
+        return False
+
+def countTokens(username):
+    tokens = users.find({
+        "Username": username
+    })[0]["Tokens"]
+    return tokens
+
 class Register(Resource):
     def post(self):
         postedData = request.get_json()
@@ -17,13 +33,13 @@ class Register(Resource):
         username = postedData["username"]
         password = postedData["password"]
 
-        hashed_pw = bcrypt.hashpw(password, bcrypt.gensalt())
+        hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
 
         users.insert({
             "Username": username,
             "Password": hashed_pw,
             "Sentence": "",
-            "Token": 10
+            "Tokens": 10
         })
 
         retJson = {
