@@ -17,7 +17,7 @@ def verifyPw(username, password):
 
     if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
         return True
-    else
+    else:
         return False
 
 def countTokens(username):
