@@ -54,31 +54,29 @@ def countTokens(username):
 
 class Store(Resource):
     def post(self):
-        #Step 1 get the posted data
         postedData = request.get_json()
 
-        #Step 2 is to read the data
         username = postedData["username"]
         password = postedData["password"]
         sentence = postedData["sentence"]
 
-        #Step 3 verify the username pw match
         correct_pw = verifyPw(username, password)
 
         if not correct_pw:
             retJson = {
-                "status":302
-            }
-            return jsonify(retJson)
-        #Step 4 Verify user has enough tokens
-        num_tokens = countTokens(username)
-        if num_tokens <= 0:
-            retJson = {
-                "status": 301
+                "status":302,
+                "msg": "Please insert correct password"
             }
             return jsonify(retJson)
 
-        #Step 5 store the sentence, take one token away  and return 200OK
+        num_tokens = countTokens(username)
+        if num_tokens <= 0:
+            retJson = {
+                "status": 301,
+                "msg": "Out of token"
+            }
+            return jsonify(retJson)
+
         users.update({
             "Username":username
         }, {
@@ -95,6 +93,16 @@ class Store(Resource):
         return jsonify(retJson)
 
 
+class Get(Resource):
+    def get(self):
+        postedData = request.get_json()
+
+        username = postedData["username"]
+        password = postedData["password"]
+
+        correct_pw = verifyPw(username, password)
+
+        if not
 
 
 
