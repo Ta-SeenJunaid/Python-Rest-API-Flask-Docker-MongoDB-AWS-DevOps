@@ -10,14 +10,34 @@ client = MongoClient("mongodb://database:27017")
 db = client.SentencesDatabase
 users = db["Users"]
 
+#password verification
+def verifyPw(username, password):
+    hashed_pw = users.find({
+        "Username":username
+    })[0]["Password"]
+
+    if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
+        return True
+    else:
+        return False
+
+#token counts
+def countTokens(username):
+    tokens = users.find({
+        "Username":username
+    })[0]["Tokens"]
+    return tokens
+
+#register user
 class Register(Resource):
     def post(self):
-        #Step 1 is to get posted data by the user
+        
+        #get posted data by the user
         postedData = request.get_json()
 
         #Get the data
         username = postedData["username"]
-        password = postedData["password"] #"123xyz"
+        password = postedData["password"]
 
 
         hashed_pw = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
@@ -36,22 +56,9 @@ class Register(Resource):
         }
         return jsonify(retJson)
 
-def verifyPw(username, password):
-    hashed_pw = users.find({
-        "Username":username
-    })[0]["Password"]
 
-    if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
-        return True
-    else:
-        return False
 
-def countTokens(username):
-    tokens = users.find({
-        "Username":username
-    })[0]["Tokens"]
-    return tokens
-
+#store sentence
 class Store(Resource):
     def post(self):
         postedData = request.get_json()
@@ -60,6 +67,7 @@ class Store(Resource):
         password = postedData["password"]
         sentence = postedData["sentence"]
 
+        #password checking
         correct_pw = verifyPw(username, password)
 
         if not correct_pw:
@@ -69,6 +77,7 @@ class Store(Resource):
             }
             return jsonify(retJson)
 
+        #enough tokens checking
         num_tokens = countTokens(username)
         if num_tokens <= 0:
             retJson = {
@@ -77,6 +86,7 @@ class Store(Resource):
             }
             return jsonify(retJson)
 
+        #datanase update
         users.update({
             "Username":username
         }, {
@@ -92,7 +102,7 @@ class Store(Resource):
         }
         return jsonify(retJson)
 
-
+#get the sentence
 class Get(Resource):
     def post(self):
         postedData = request.get_json()
@@ -100,6 +110,7 @@ class Get(Resource):
         username = postedData["username"]
         password = postedData["password"]
 
+        #password checking
         correct_pw = verifyPw(username, password)
         if not correct_pw:
             retJson = {
@@ -108,7 +119,7 @@ class Get(Resource):
             }
             return jsonify(retJson)
 
-
+        #enough tokens checking
         num_tokens = countTokens(username)
         if num_tokens <= 0:
             retJson = {
@@ -117,6 +128,7 @@ class Get(Resource):
             }
             return jsonify(retJson)
 
+        #token update
         users.update({
             "Username":username
         }, {
@@ -135,6 +147,7 @@ class Get(Resource):
         }
 
         return jsonify(retJson)
+
 
 api.add_resource(Register, '/register')
 api.add_resource(Store, '/store')
