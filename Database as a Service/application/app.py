@@ -100,7 +100,7 @@ class Get(Resource):
         username = postedData["username"]
         password = postedData["password"]
 
-        correct_pw = verifyPw(username, password) 
+        correct_pw = verifyPw(username, password)
         if not correct_pw:
             retJson = {
                 "status":302,
@@ -116,6 +116,14 @@ class Get(Resource):
                 "msg": "Out of token"
             }
             return jsonify(retJson)
+
+        users.update({
+            "Username":username
+        }, {
+            "$set":{
+                "Tokens":num_tokens-1
+                }
+        })
 
         sentence = users.find({
             "Username": username
